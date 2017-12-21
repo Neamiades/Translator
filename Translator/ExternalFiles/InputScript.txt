@@ -1,0 +1,15 @@
+PROGRAM JUGOKKU;
+
+VAR A1 : INTEGER;
+VAR A2 : INTEGER;
+VAR B : INTEGER;
+VAR C : INTEGER;
+
+BEGIN
+
+A1 := 44;
+A2 := A1;
+B := A1 * A2;
+C := B * (B * A1 - B * A2) + 4;
+
+END.
