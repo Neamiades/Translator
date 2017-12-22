@@ -147,15 +147,15 @@ namespace Translator
                 int a;
                 if (Int32.TryParse(stroke, out a))
                 {
-                    if (_table.Constants.ContainsKey(stroke))
+                    if (_table.Constants.TryGetValue(stroke, out value))
+                    {
+                        _table.Tokens.Add(new Token(stroke, value, _line, _column));
+                    }
+                    else
                     {
                         _table.Constants.Add(stroke, _constCode);
                         _table.Tokens.Add(new Token(stroke, _constCode, _line, _column));
                         _constCode++;
-                    }
-                    else if (_table.Constants.TryGetValue(stroke, out value))
-                    {
-                        _table.Tokens.Add(new Token(stroke, value, _line, _column));
                     }
                 }
                 else
@@ -169,9 +169,8 @@ namespace Translator
             }
             else
             {
-                _table.Identifiers.Add(stroke, value);
-                _table.Tokens.Add(new Token(stroke, _identifierCode, _line, _column));
-                _identifierCode++;
+                _table.Identifiers.Add(stroke, _identifierCode);
+                _table.Tokens.Add(new Token(stroke, _identifierCode++, _line, _column));
             }
         }
     }
