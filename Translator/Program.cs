@@ -3,9 +3,9 @@ using static System.Console;
 
 namespace Translator
 {
-    class Program
+    static class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             var table = Lexer.ParseFile("../../ExternalFiles/InputScript.txt");
             PrintTableToConsole(table);
@@ -22,11 +22,6 @@ namespace Translator
 
             PrintTokens(nameof(table.Tokens), table.Tokens);
             PrintTokens(nameof(table.Errors), table.Errors);
-
-            //foreach (var c in Errors)
-            //{
-            //    Console.WriteLine(c.Name + "\t" + "\t" + $"[{c.Line}]" + $"[{c.Column}]");
-            //}
         }
 
         private static void PrintTokens(string tokensName, List<Token> tokens)

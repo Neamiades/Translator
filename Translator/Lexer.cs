@@ -1,24 +1,23 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using static System.Console;
 
 namespace Translator
 {
     static class Lexer
     {
-        static private int _line;
+        private static int _line;
 
-        static private int _column;
+        private static int _column;
 
-        static private int _identifierCode;
+        private static int _identifierCode;
 
-        static private int _constCode;
+        private static int _constCode;
 
-        static private string _globalWord;
+        private static string _globalWord;
 
-        static private Table _table;
+        private static Table _table;
 
-        static public Table ParseFile(string fileName)
+        public static Table ParseFile(string fileName)
         {
             InitVars();
             using (var sr = new StreamReader(fileName))
@@ -33,10 +32,9 @@ namespace Translator
                         c = (char)sr.Read();
                         if (c == '*')
                         {
-                            char cNext = ' ';
                             while (true)
                             {
-                                cNext = (char)sr.Read();
+                                var cNext = (char)sr.Read();
                                 _column++;
                                 if (sr.Peek() == -1)
                                 {
@@ -70,7 +68,7 @@ namespace Translator
             return _table;
         }
 
-        static private void InitVars()
+        private static void InitVars()
         {
             _line = 1;
             _column = -1;
@@ -79,7 +77,7 @@ namespace Translator
             _table = new Table();
         }
 
-        static private void SymbolWorker(char c, StreamReader sr)
+        private static void SymbolWorker(char c, StreamReader sr)
         {
             Write(c);
             if (c == '\n')
@@ -88,23 +86,19 @@ namespace Translator
                 _column = -1;
                 WordDetector(_globalWord);
                 _globalWord = null;
-                return;
-                
+
             }
-            else if (Char.IsLetterOrDigit(c))
+            else if (char.IsLetterOrDigit(c))
             {
                 _globalWord += c;
-                return;
             }
-            else if (Char.IsWhiteSpace(c))
+            else if (char.IsWhiteSpace(c))
             {
                 WordDetector(_globalWord);
                 _globalWord = null;
-                return;
             }
             else if (c == ':')
             {
-                char prev = c;
                 c = (char)sr.Read();
                 if (c == '=')
                 {
@@ -112,28 +106,28 @@ namespace Translator
                     WordDetector(_globalWord);
                     _globalWord = null;
                     _table.Tokens.Add(new Token(":=", 300, _line, _column));
-                    return;
                 }
                 else
                 {
                     _table.Tokens.Add(new Token(":", 8, _line, _column));
                     SymbolWorker(c, sr);
-                    return;
                 }
             }
-            if (_table.Delimeters.TryGetValue(c, out int value))
+            else if (_table.Delimeters.TryGetValue(c, out int value))
             {
                 WordDetector(_globalWord);
                 _globalWord = null;
                 _table.Tokens.Add(new Token(c.ToString(), value, _line, _column));
-                return;
             }
-            WordDetector(_globalWord);
-            _globalWord = null;
-            _table.Errors.Add(new Token($"LEKS ERR IMPOSS SYMBOL [{c}]", 0, _line, _column));
+            else
+            {
+                WordDetector(_globalWord);
+                _globalWord = null;
+                _table.Errors.Add(new Token($"LEKS ERR IMPOSS SYMBOL [{c}]", 0, _line, _column));
+            }
         }
 
-        static private void WordDetector(string stroke)
+        private static void WordDetector(string stroke)
         {
             if (stroke == null)
                 return;
@@ -142,10 +136,9 @@ namespace Translator
             {
                 _table.Tokens.Add(new Token(stroke, value, _line, _column));
             }
-            else if (Char.IsDigit(stroke[0]))
+            else if (char.IsDigit(stroke[0]))
             {
-                int a;
-                if (Int32.TryParse(stroke, out a))
+                if (int.TryParse(stroke, out _))
                 {
                     if (_table.Constants.TryGetValue(stroke, out value))
                     {
