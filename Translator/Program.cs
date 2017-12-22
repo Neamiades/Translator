@@ -36,7 +36,7 @@ namespace Translator
             WriteLine();
         }
 
-        private static void PrintDictionary<TValue>(string dicName, Dictionary<int, TValue> dictionary)
+        private static void PrintDictionary<TKey, TValue>(string dicName, Dictionary<TKey, TValue> dictionary)
         {
             WriteLine($"{dicName}:");
 

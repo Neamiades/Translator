@@ -8,11 +8,24 @@ namespace Translator
 
         public List<Token> Tokens = new List<Token>();
 
-        public Dictionary<int, string> Constants        = new Dictionary<int, string>();
+        public Dictionary<string, int> Constants        = new Dictionary<string, int>();
 
-        public Dictionary<int, string> Identifiers      = new Dictionary<int, string>();
+        public Dictionary<string, int> Identifiers      = new Dictionary<string, int>();
 
-        public Dictionary<int, char>   Delimeters       = new Dictionary<int, char>()
+        public Dictionary<char, int>   Delimeters       = new Dictionary<char, int>()
+        {
+            { '.', 0 },
+            { ';', 1 },
+            { '+', 4 },
+            { '-', 5 },
+            { '/', 6 },
+            { '*', 7 },
+            { ':', 8 },
+            { ')', 9 },
+            {'(' , 10},
+        };
+
+        public Dictionary<int, char> Delimeters2 = new Dictionary<int, char>()
         {
             { 0,  '.' },
             { 1,  ';' },
@@ -25,18 +38,18 @@ namespace Translator
             { 10, '(' },
         };
 
-        public Dictionary<int, string> DoubleDelimeters = new Dictionary<int, string>()
+        public Dictionary<string, int> DoubleDelimeters = new Dictionary<string, int>()
         {
-            { 300, ":="}
+            { ":=", 300}
         };
 
-        public Dictionary<int, string> CoreWords        = new Dictionary<int, string>()
+        public Dictionary<string, int> CoreWords        = new Dictionary<string, int>()
         {
-            {401, "PROGRAM" },
-            {402, "END" },
-            {403, "BEGIN" },
-            {404, "VAR" },
-            {405, "INTEGER" }
+            {"PROGRAM", 401 },
+            {"END"    , 402 },
+            {"BEGIN"  , 403 },
+            {"VAR"    , 404 },
+            {"INTEGER", 405 }
         };
     }
 }

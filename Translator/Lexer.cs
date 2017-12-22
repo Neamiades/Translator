@@ -121,15 +121,12 @@ namespace Translator
                     return;
                 }
             }
-            foreach (var delim in _table.Delimeters)
+            if (_table.Delimeters.TryGetValue(c, out int value))
             {
-                if (c == delim.Value)
-                {
-                    WordDetector(_globalWord);
-                    _globalWord = null;
-                    _table.Tokens.Add(new Token(delim.Value.ToString(), delim.Key, _line, _column));
-                    return;
-                }
+                WordDetector(_globalWord);
+                _globalWord = null;
+                _table.Tokens.Add(new Token(c.ToString(), value, _line, _column));
+                return;
             }
             WordDetector(_globalWord);
             _globalWord = null;
@@ -140,62 +137,41 @@ namespace Translator
         {
             if (stroke == null)
                 return;
-                
-            foreach (var coreWord in _table.CoreWords)
+
+            if (_table.CoreWords.TryGetValue(stroke, out int value))
             {
-                if (stroke == coreWord.Value)
-                {
-                    _table.Tokens.Add(new Token(stroke, coreWord.Key, _line, _column));
-                    return;
-                }
+                _table.Tokens.Add(new Token(stroke, value, _line, _column));
             }
-            if (Char.IsDigit(stroke[0]))
+            else if (Char.IsDigit(stroke[0]))
             {
                 int a;
                 if (Int32.TryParse(stroke, out a))
                 {
-                    if (!_table.Constants.ContainsValue(stroke))
+                    if (_table.Constants.ContainsKey(stroke))
                     {
-                        _table.Constants.Add(_constCode, stroke);
+                        _table.Constants.Add(stroke, _constCode);
                         _table.Tokens.Add(new Token(stroke, _constCode, _line, _column));
                         _constCode++;
-                        return;
                     }
-                    else
+                    else if (_table.Constants.TryGetValue(stroke, out value))
                     {
-                        foreach (var con in _table.Constants)
-                        {
-                            if (stroke == con.Value)
-                            {
-                                _table.Tokens.Add(new Token(stroke, con.Key, _line, _column));
-                                return;
-                            }
-                        }
+                        _table.Tokens.Add(new Token(stroke, value, _line, _column));
                     }
                 }
                 else
                 {
                     _table.Errors.Add(new Token($"LEKS ERR IDENT CANT START WITH NUM [{stroke}] ", 0, _line, _column));
-                    return;
                 }
             }
-            if (!_table.Identifiers.ContainsValue(stroke))
+            else if (_table.Identifiers.TryGetValue(stroke, out value))
             {
-                _table.Identifiers.Add(_identifierCode, stroke);
-                _table.Tokens.Add(new Token(stroke, _identifierCode, _line, _column));
-                _identifierCode++;
-                return;
+                _table.Tokens.Add(new Token(stroke, value, _line, _column));
             }
             else
             {
-                foreach (var ident in _table.Identifiers)
-                {
-                    if (stroke == ident.Value)
-                    {
-                        _table.Tokens.Add(new Token(stroke, ident.Key, _line, _column));
-                        return;
-                    }
-                }
+                _table.Identifiers.Add(stroke, value);
+                _table.Tokens.Add(new Token(stroke, _identifierCode, _line, _column));
+                _identifierCode++;
             }
         }
     }
