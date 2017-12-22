@@ -25,19 +25,6 @@ namespace Translator
             {'(' , 10},
         };
 
-        public Dictionary<int, char> Delimeters2 = new Dictionary<int, char>()
-        {
-            { 0,  '.' },
-            { 1,  ';' },
-            { 4,  '+' },
-            { 5,  '-' },
-            { 6,  '/' },
-            { 7,  '*' },
-            { 8,  ':' },
-            { 9,  ')' },
-            { 10, '(' },
-        };
-
         public Dictionary<string, int> DoubleDelimeters = new Dictionary<string, int>()
         {
             { ":=", 300}
