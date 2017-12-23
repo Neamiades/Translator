@@ -42,11 +42,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Lexer.cs" />
+    <Compile Include="LexicalAnalyzer\FSM\Events.cs" />
+    <Compile Include="LexicalAnalyzer\FSM\Fsm.cs" />
+    <Compile Include="LexicalAnalyzer\Lexer.cs" />
+    <Compile Include="LexicalAnalyzer\InitTable.cs" />
+    <Compile Include="LexicalAnalyzer\FSM\States.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Table.cs" />
-    <Compile Include="Token.cs" />
+    <Compile Include="LexicalAnalyzer\Table.cs" />
+    <Compile Include="LexicalAnalyzer\Lexem.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

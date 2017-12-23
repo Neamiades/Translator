@@ -1,6 +1,6 @@
-﻿namespace Translator
+﻿namespace Translator.LexicalAnalyzer
 {
-    struct Token
+    struct Lexem
     {
         public int Line    { get; set; }
 
@@ -10,7 +10,7 @@
 
         public string Name { get; set; }
 
-        public Token(string name, int code, int line, int column)
+        public Lexem(string name, int code, int line, int column)
         {
             Name = name;
             Code = code;
