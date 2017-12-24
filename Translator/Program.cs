@@ -15,21 +15,22 @@ namespace Translator
 
         static void Main()
         {
-            var table = Lexer.ParseFile("../../ExternalFiles/InputScript.txt", InitTable);
-            PrintTableToConsole(table);
+            var lexer = new Lexer(InitTable);
+            (var InformationTable, var Lexems, var Errors) = lexer.ParseFile("../../ExternalFiles/InputScript.txt");
+            PrintTableToConsole(InformationTable, Lexems, Errors);
         }
 
-        private static void PrintTableToConsole(Table table)
+        private static void PrintTableToConsole(Table informationTable, List<Lexem> lexems, List<Lexem> errors)
         {
             WriteLine();
-            PrintDictionary(nameof(table.Constants), table.Constants);
-            PrintDictionary(nameof(table.Identifiers), table.Identifiers);
-            PrintDictionary(nameof(table.Delimeters), table.Delimeters);
-            PrintDictionary(nameof(table.MultiDelimeters), table.MultiDelimeters);
-            PrintDictionary(nameof(table.CoreWords), table.CoreWords);
+            PrintDictionary(nameof(informationTable.Constants), informationTable.Constants);
+            PrintDictionary(nameof(informationTable.Identifiers), informationTable.Identifiers);
+            PrintDictionary(nameof(informationTable.Delimeters), informationTable.Delimeters);
+            PrintDictionary(nameof(informationTable.MultiDelimeters), informationTable.MultiDelimeters);
+            PrintDictionary(nameof(informationTable.CoreWords), informationTable.CoreWords);
 
-            PrintTokens(nameof(table.Tokens), table.Tokens);
-            PrintTokens(nameof(table.Errors), table.Errors);
+            PrintTokens(nameof(lexems), lexems);
+            PrintTokens(nameof(errors), errors);
         }
 
         private static void PrintTokens(string tokensName, List<Lexem> tokens)

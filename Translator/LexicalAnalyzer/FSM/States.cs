@@ -7,6 +7,7 @@
         Number,
         Out,
         Input,
+        Delimeter,
         Whitespace,
         BeginComment,
         Comment,

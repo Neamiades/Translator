@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using Translator.LexicalAnalyzer;
 
-namespace Translator.LexicalAnalyzer
+namespace Translator
 {
     class Table
     {
