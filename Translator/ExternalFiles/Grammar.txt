@@ -1,45 +1,45 @@
-1. <signal-program> —> <program>
+1. <signal-program> â€”> <program>
 
-2. <program> —> PROGRAM <procedure-identifier> ; <block>.
+2. <program> â€”> PROGRAM <procedure-identifier> ; <block>.
 
-3. <block> —> <variable-declarations> BEGIN <statements-list> END
+3. <block> â€”> <variable-declarations> BEGIN <statements-list> END
 
-4. <variable-declarations> —> VAR <declarations-list> | <empty>
+4. <variable-declarations> â€”> VAR <declarations-list> | <empty>
 
-5. <declarations-list> —> <declaration> <declarations-list> | <empty>
+5. <declarations-list> â€”> <declaration> <declarations-list> | <empty>
 
-6. <declaration> —><variable-identifier>: INTEGER ;
+6. <declaration> â€”><variable-identifier>: INTEGER ;
 
-7. <statements-list> —> <statement> <statements-list> | <empty>
+7. <statements-list> â€”> <statement> <statements-list> | <empty>
 
-8 <statement> —> <variable-identifier> := <expression> ;
+8. <statement> â€”> <variable-identifier> := <expression> ;
 
-9 <expression> —> <summand> <summands-list> | - <summand> <summands-list>
+9. <expression> â€”> <summand> <summands-list> | - <summand> <summands-list>
 
-10. <summands-list> —> <add-instruction> <summand> <summands-list> | <empty>
+10. <summands-list> â€”> <add-instruction> <summand> <summands-list> | <empty>
 
-11. <add-instruction> —> + | -
+11. <add-instruction> â€”> + | -
 
-12. <summand> —> <multiplier><multipliers-list>
+12. <summand> â€”> <multiplier><multipliers-list>
 
-13. <multipliers-list> —> <multiplication-instruction> <multiplier><multipliers-list> | <empty>
+13. <multipliers-list> â€”> <multiplication-instruction> <multiplier><multipliers-list> | <empty>
 
-14. <multiplication-instruction> —> * | /
+14. <multiplication-instruction> â€”> * | /
 
-15. <multiplier> —> <variable-identifier> | <unsigned-integer> | ( <expression> )
+15. <multiplier> â€”> <variable-identifier> | <unsigned-integer> | ( <expression> )
 
-16. <variable-identifier> —> <identifier>
+16. <variable-identifier> â€”> <identifier>
 
-17. <procedure-identifier> —> <identifier>
+17. <procedure-identifier> â€”> <identifier>
 
-18. <identifier> —> <letter><string>
+18. <identifier> â€”> <letter><string>
 
-19. <string> —> <letter><string> | <digit><string> | <empty>
+19. <string> â€”> <letter><string> | <digit><string> | <empty>
 
-20. <unsigned-integer> —> <digit><digits-string>
+20. <unsigned-integer> â€”> <digit><digits-string>
 
-21. <digits-string> —> <digit><digits-string> | <empty>
+21. <digits-string> â€”> <digit><digits-string> | <empty>
 
-22. <digit> —> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+22. <digit> â€”> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
-23. <letter> —>A|B|C|D|...|Z
+23. <letter> â€”>A|B|C|D|...|Z
