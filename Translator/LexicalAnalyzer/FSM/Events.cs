@@ -7,9 +7,9 @@
         Delimeter,
         MultiDelimStart,
         Whitespace,
-        OpenParenthesis,
-        Asterisk,
-        CloseParenthesis,
+        CommentOpenSymbol,
+        CommentAdditionSymbol,
+        CommentCloseSymbol,
         Eof,
         Other
     }

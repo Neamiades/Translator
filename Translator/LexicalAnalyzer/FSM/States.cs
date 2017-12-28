@@ -4,17 +4,13 @@
     {
         Initial,
         Identifier,
-        InStack,
-        OfStack,
         Number,
-        Out,
         Read,
-        Delimeter,
+        MultiDelimeter,
         Whitespace,
         BeginComment,
         Comment,
         EndComment,
-        Exit,
-        Error
+        Exit
     }
 }

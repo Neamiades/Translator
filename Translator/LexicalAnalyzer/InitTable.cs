@@ -11,5 +11,12 @@
         public string[] Constants       { get; set; }
 
         public string[] Identifiers     { get; set; }
+
+
+        public char CommentOpenSymbol     { get; set; }
+               
+        public char CommentAdditionSymbol { get; set; }
+               
+        public char CommentCloseSymbol    { get; set; }
     }
 }

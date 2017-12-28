@@ -16,60 +16,19 @@ namespace Translator.LexicalAnalyzer
 
         private States _currentState;
 
+        private const int ErrorCode = -1;
+
+        private const char NextLine = '\n';
+
         private int _line;
 
         private int _column;
 
         private string _word;
 
-        public Lexer(InitTable initTable) => _table = new Table(initTable);
+        char _prevSymbol;
 
-        private void LetterEvent(char symbol)
-        {
-            //switch (CurrentState)
-            //{
-            //    case States.Initial:
-            //        CurrentState = States.Identifier;
-            //        _word += symbol;
-            //        break;
-            //    case States.Identifier:
-            //        _word += symbol;
-            //        break;
-            //    case States.Number:
-            //        CurrentState = States.Out;
-            //        break;
-            //    case States.Read:
-            //        break;
-            //    case States.Whitespace:
-            //        CurrentState = States.Read;
-            //        break;
-            //    case States.BeginComment:
-            //        if (_table.Delimeters.TryGetValue('(', out int code))
-            //        {
-            //            resultLexems.Add(new Lexem(ident, code, line, identCol));
-            //        }
-            //        else if (_table.Identifiers.TryGetValue(ident, out code))
-            //        {
-            //            resultLexems.Add(new Lexem(ident, code, line, identCol));
-            //        }
-            //        else
-            //        {
-            //            _table.AddIdentifier(ident);
-            //            resultLexems.Add(new Lexem(ident, _table.Identifiers[ident], line, identCol));
-            //        }
-            //        break;
-            //    case States.Comment:
-            //        break;
-            //    case States.EndComment:
-            //        break;
-            //    case States.Exit:
-            //        break;
-            //    case States.Error:
-            //        break;
-            //    default:
-            //        break;
-            //}
-        }
+        public Lexer(InitTable initTable) => _table = new Table(initTable);
 
         private Events RecognizeEvent(int symbol)
         {
@@ -77,20 +36,22 @@ namespace Translator.LexicalAnalyzer
                  : Char.IsLetter((char)symbol)                                 ? Events.Letter
                  : Char.IsDigit((char)symbol)                                  ? Events.Digit
                  : Char.IsWhiteSpace((char)symbol)                             ? Events.Whitespace
-                 : (char)symbol == '('                                         ? Events.OpenParenthesis
-                 : (char)symbol == '*'                                         ? Events.Asterisk
-                 : (char)symbol == ')'                                         ? Events.CloseParenthesis
+                 : (char)symbol == _table.CommentOpenSymbol                    ? Events.CommentOpenSymbol
+                 : (char)symbol == _table.CommentAdditionSymbol                ? Events.CommentAdditionSymbol
+                 : (char)symbol == _table.CommentCloseSymbol                   ? Events.CommentCloseSymbol
                  : _table.MultiDelimeters.Any(md => md.Key[0] == (char)symbol) ? Events.MultiDelimStart
                  : _table.Delimeters.ContainsKey((char)symbol)                 ? Events.Delimeter
                  : Events.Other;
-
         }
 
         private void NextState(char symbol, Events eventType)
         {
+            int code;
+
             switch (_currentState)
             {
                 case States.Initial:
+                case States.Read:
                     switch (eventType)
                     {
                         case Events.Letter:
@@ -102,27 +63,32 @@ namespace Translator.LexicalAnalyzer
                             _word += symbol;
                             break;
                         case Events.Delimeter:
-                            _currentState = States.Out;
+                            _resultLexems.Add(new Lexem(symbol.ToString(), _table.Delimeters[symbol], _line, _column));
+                            _currentState = States.Read;
                             break;
                         case Events.Whitespace:
                             _currentState = States.Whitespace;
                             break;
-
                         case Events.MultiDelimStart:
-                        case Events.OpenParenthesis:
-                            _currentState = States.InStack;
+                            _prevSymbol = symbol;
+                            _currentState = States.MultiDelimeter;
+                            break;
+                        case Events.CommentOpenSymbol:
+                            _prevSymbol = symbol;
+                            _currentState = States.BeginComment;
                             break;
 
-                        case Events.Asterisk:
-                        case Events.CloseParenthesis:
-                            _currentState = States.Out;
+                        case Events.CommentAdditionSymbol:
+                        case Events.CommentCloseSymbol:
+                            _resultLexems.Add(new Lexem(symbol.ToString(), _table.Delimeters[symbol], _line, _column));
+                            _currentState = States.Read;
                             break;
 
                         case Events.Eof:
                             _currentState = States.Exit;
                             break;
                         case Events.Other:
-                            _currentState = States.Error;
+                            _errorLexems.Add(new Lexem($"Unexpected symbol - {symbol}", ErrorCode, _line, _column));
                             break;
                         default:
                             throw new ArgumentOutOfRangeException(nameof(eventType), eventType, null);
@@ -133,11 +99,24 @@ namespace Translator.LexicalAnalyzer
                     {
                         case Events.Letter:
                         case Events.Digit:
-                            _currentState = States.Identifier;
                             _word += symbol;
                             break;
                         default:
-                            _currentState = States.Out;
+                            if (_table.CoreWords.TryGetValue(_word, out code))
+                            {
+                                _resultLexems.Add(new Lexem(_word, code, _line, _column - _word.Length));
+                            }
+                            else if (_table.Identifiers.TryGetValue(_word, out code))
+                            {
+                                _resultLexems.Add(new Lexem(_word, code, _line, _column - _word.Length));
+                            }
+                            else
+                            {
+                                _table.AddIdentifier(_word);
+                                _resultLexems.Add(new Lexem(_word, _table.Identifiers[_word], _line, _column - _word.Length));
+                            }
+                            _word = null;
+                            _currentState = States.Initial;
                             break;
                     }
                     break;
@@ -149,146 +128,110 @@ namespace Translator.LexicalAnalyzer
                             _word += symbol;
                             break;
                         default:
-                            _currentState = States.Out;
+                            if (_table.Constants.TryGetValue(_word, out code))
+                            {
+                                _resultLexems.Add(new Lexem(_word, code, _line, _column - _word.Length));
+                            }
+                            else
+                            {
+                                _table.AddConstant(_word);
+                                _resultLexems.Add(new Lexem(_word, _table.Constants[_word], _line, _column - _word.Length));
+                            }
+                            _word = null;
+                            _currentState = States.Initial;
                             break;
                     }
                     break;
-                case States.Out:
-                    if (_table.CoreWords.TryGetValue(ident, out int code))
-                    {
-                        resultLexems.Add(new Lexem(ident, code, line, identCol));
-                    }
-                    else if (_table.Identifiers.TryGetValue(ident, out code))
-                    {
-                        resultLexems.Add(new Lexem(ident, code, line, identCol));
-                    }
-                    else
-                    {
-                        _table.AddIdentifier(ident);
-                        resultLexems.Add(new Lexem(ident, _table.Identifiers[ident], line, identCol));
-                    }
-                    break;
-                case States.Read:
-                    break;
-                case States.Delimeter:
-                    break;
                 case States.Whitespace:
+                    if (eventType != Events.Whitespace)
+                    {
+                        _currentState = States.Initial;
+                    }
                     break;
                 case States.BeginComment:
+                    switch (eventType)
+                    {
+                        case Events.CommentAdditionSymbol:
+                            _currentState = States.Comment;
+                            break;
+                        default:
+                            _resultLexems.Add(new Lexem(_prevSymbol.ToString(), _table.Delimeters[_prevSymbol], _line, _column - 1));
+                            _currentState = States.Initial;
+                            break;
+                    }
                     break;
                 case States.Comment:
+                    switch (eventType)
+                    {
+                        case Events.CommentAdditionSymbol:
+                            _currentState = States.EndComment;
+                            break;
+                        case Events.Eof:
+                            _errorLexems.Add(new Lexem("Not closed comment", ErrorCode, _line, _column - 1));
+                            _currentState = States.Exit;
+                            break;
+                    }
                     break;
                 case States.EndComment:
+                    _currentState =   eventType == Events.CommentCloseSymbol    ? States.Read
+                                    : eventType == Events.CommentAdditionSymbol ? States.EndComment
+                                    : States.Comment;
                     break;
-                case States.Exit:
+                case States.MultiDelimeter:
+                    var multiDelim = $"{_prevSymbol}{symbol}";
+
+                    switch (eventType)
+                    {
+                        case Events.Delimeter:
+                        case Events.MultiDelimStart:
+                        case Events.CommentAdditionSymbol:
+                        case Events.CommentCloseSymbol:
+                            if (_table.MultiDelimeters.TryGetValue(multiDelim, out code))
+                            {
+                                _resultLexems.Add(new Lexem(multiDelim, _table.MultiDelimeters[multiDelim], _line, _column - 1));
+                            }
+                            else
+                            {
+                                _resultLexems.Add(new Lexem(_prevSymbol.ToString(), _table.Delimeters[_prevSymbol], _line, _column));
+                                _resultLexems.Add(new Lexem(symbol.ToString(), _table.Delimeters[symbol], _line, _column));
+                            }
+                            _currentState = States.Read;
+                            break;
+                        case Events.CommentOpenSymbol:
+                            if (_table.MultiDelimeters.TryGetValue(multiDelim, out code))
+                                _resultLexems.Add(new Lexem(multiDelim, _table.MultiDelimeters[multiDelim], _line, _column - 1));
+                            else
+                                _resultLexems.Add(new Lexem(_prevSymbol.ToString(), _table.Delimeters[_prevSymbol], _line, _column));
+                            
+                            _currentState = States.BeginComment;
+                            break;
+
+                        case Events.Other:
+                            if (_table.MultiDelimeters.TryGetValue(multiDelim, out code))
+                            {
+                                _resultLexems.Add(new Lexem(multiDelim, _table.MultiDelimeters[multiDelim], _line, _column - 1));
+                            }
+                            else
+                            {
+                                _resultLexems.Add(new Lexem(_prevSymbol.ToString(), _table.Delimeters[_prevSymbol], _line, _column));
+                                _errorLexems.Add(new Lexem($"Unexpected symbol - {symbol}", ErrorCode, _line, _column));
+                            }
+                            _currentState = States.Read;
+                            break;
+
+                        default:
+                            _resultLexems.Add(new Lexem(_prevSymbol.ToString(), _table.Delimeters[_prevSymbol], _line, _column));
+                            _currentState = States.Initial;
+                            break;
+                    }
                     break;
-                case States.Error:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
-            //if (Char.IsLetter(symbol))
-            //{
-            //    var ident = symbol.ToString();
-            //    var identCol = column;
-
-            //    symbol = (char)sr.Read();
-            //    while (Char.IsLetter(symbol) || Char.IsDigit(symbol))
-            //    {
-            //        ident += symbol;
-            //        column++;
-            //        symbol = (char)sr.Read();
-            //    }
-
-            //    if (_table.CoreWords.TryGetValue(ident, out int code))
-            //    {
-            //        resultLexems.Add(new Lexem(ident, code, line, identCol));
-            //    }
-            //    else if (_table.Identifiers.TryGetValue(ident, out code))
-            //    {
-            //        resultLexems.Add(new Lexem(ident, code, line, identCol));
-            //    }
-            //    else
-            //    {
-            //        _table.AddIdentifier(ident);
-            //        resultLexems.Add(new Lexem(ident, _table.Identifiers[ident], line, identCol));
-            //    }
-            //}
-            //else if (Char.IsDigit(symbol))
-            //{
-            //    LetterEvent();
-            //    var constant = symbol.ToString();
-            //    var constantCol = column;
-
-            //    symbol = (char)sr.Read();
-            //    while (Char.IsDigit(symbol))
-            //    {
-            //        constant += symbol;
-            //        column++;
-            //        symbol = (char)sr.Read();
-            //    }
-            //    if (Char.IsLetter(symbol))
-            //    {
-            //        errorLexems.Add(new Lexem("Identifier can not start with number", -1, line, constantCol));
-            //        column++;
-            //        symbol = (char)sr.Read();
-            //        while (Char.IsDigit(symbol) || Char.IsDigit(symbol))
-            //        {
-            //            column++;
-            //            symbol = (char)sr.Read();
-            //        }
-            //    }
-            //    else if (_table.Constants.TryGetValue(constant, out int code))
-            //    {
-            //        resultLexems.Add(new Lexem(constant, code, line, constantCol));
-            //    }
-            //    else
-            //    {
-            //        _table.AddConstant(constant);
-            //        resultLexems.Add(new Lexem(constant, _table.Identifiers[constant], line, constantCol));
-            //    }
-            //}
-            //else if (symbol == '(')
-            //{
-            //    var prevSymbol = symbol;
-            //    column++;
-            //    if ((symbol = (char)sr.Read()) == '*')
-            //    {
-            //        while (!sr.EndOfStream)
-            //        {
-            //            column++;
-            //            if (symbol == '*')
-            //            {
-            //                column++;
-            //                if ((symbol = (char)sr.Read()) == ')')
-            //                {
-            //                    symbol = (char)sr.Read();
-            //                    break;
-            //                }
-            //            }
-            //            else if (symbol == '*')
-            //            {
-
-            //            }
-            //            symbol = (char)sr.Read();
-            //        }
-            //    }
-            //}
-            //else if (_table.Delimeters.ContainsKey(symbol))
-            //{
-            //    return Events.Delimeter;
-            //}
-            //else if (Char.IsWhiteSpace(symbol))
-            //{
-            //    return Events.Whitespace;
-            //}
-            //return Events.Other;
         }
 
         public (Table informationTable, List<Lexem> lexems, List<Lexem> errors) ParseFile(string fileName)
         {
-            _line = 0;
-            _column = 0;
+            _line = 1;
+            _column = 1;
             _currentState = States.Initial;
 
             _resultLexems = new List<Lexem>();
@@ -297,7 +240,7 @@ namespace Translator.LexicalAnalyzer
             using (var sr = new StreamReader(fileName))
             {
                 var symbol = sr.Read();
-
+                Console.Write((char)symbol);
                 while (_currentState != States.Exit)
                 {
                     NextState((char)symbol, RecognizeEvent(symbol));
@@ -307,11 +250,20 @@ namespace Translator.LexicalAnalyzer
                         || _currentState == States.Number
                         || _currentState == States.Whitespace
                         || _currentState == States.Comment
-                        || _currentState == States.EndComment)
+                        || _currentState == States.BeginComment
+                        || _currentState == States.EndComment
+                        || _currentState == States.MultiDelimeter)
                     {
                         symbol = sr.Read();
-                        _column++;
+                        Console.Write((char)symbol);
 
+                        if (symbol == NextLine)
+                        {
+                            _column = 1;
+                            _line++;
+                        }
+                        else
+                            _column++;
                     }
                 }
             }

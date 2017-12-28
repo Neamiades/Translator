@@ -10,7 +10,10 @@ namespace Translator
         {
             Delimeters      = new [] {'.', ';', '+', '-', '/', '*', ':', ')', '('},
             MultiDelimeters = new [] { ":=" },
-            CoreWords       = new [] { "PROGRAM", "END", "BEGIN", "VAR", "INTEGER" }
+            CoreWords       = new [] { "PROGRAM", "END", "BEGIN", "VAR", "INTEGER" },
+            CommentOpenSymbol = '(' ,
+            CommentAdditionSymbol = '*',
+            CommentCloseSymbol = ')'
         };
 
         static void Main()

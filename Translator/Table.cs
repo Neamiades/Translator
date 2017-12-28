@@ -15,6 +15,12 @@ namespace Translator
 
         private int _identifiersCounter;
 
+        public char CommentOpenSymbol     { get; }
+
+        public char CommentAdditionSymbol { get; }
+
+        public char CommentCloseSymbol    { get; }
+
         public readonly Dictionary<string, int> Constants;
 
         public readonly Dictionary<string, int> Identifiers;
@@ -42,6 +48,10 @@ namespace Translator
 
             if (initTable != null)
             {
+                CommentOpenSymbol     = initTable.CommentOpenSymbol     == default(char) ? '(' : initTable.CommentOpenSymbol;
+                CommentAdditionSymbol = initTable.CommentAdditionSymbol == default(char) ? '*' : initTable.CommentAdditionSymbol;
+                CommentCloseSymbol    = initTable.CommentCloseSymbol    == default(char) ? ')' : initTable.CommentCloseSymbol;
+
                 if (initTable.Delimeters != null)
                     foreach (var delimeter in initTable.Delimeters)
                         AddDelimeter(delimeter);
