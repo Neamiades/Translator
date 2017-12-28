@@ -129,10 +129,44 @@ namespace Translator.LexicalAnalyzer
                     }
                     break;
                 case States.Identifier:
+                    switch (eventType)
+                    {
+                        case Events.Letter:
+                        case Events.Digit:
+                            _currentState = States.Identifier;
+                            _word += symbol;
+                            break;
+                        default:
+                            _currentState = States.Out;
+                            break;
+                    }
                     break;
                 case States.Number:
+                    switch (eventType)
+                    {
+                        case Events.Digit:
+                            _currentState = States.Number;
+                            _word += symbol;
+                            break;
+                        default:
+                            _currentState = States.Out;
+                            break;
+                    }
                     break;
                 case States.Out:
+                    if (_table.CoreWords.TryGetValue(ident, out int code))
+                    {
+                        resultLexems.Add(new Lexem(ident, code, line, identCol));
+                    }
+                    else if (_table.Identifiers.TryGetValue(ident, out code))
+                    {
+                        resultLexems.Add(new Lexem(ident, code, line, identCol));
+                    }
+                    else
+                    {
+                        _table.AddIdentifier(ident);
+                        resultLexems.Add(new Lexem(ident, _table.Identifiers[ident], line, identCol));
+                    }
                     break;
                 case States.Read:
                     break;
@@ -276,6 +310,8 @@ namespace Translator.LexicalAnalyzer
                         || _currentState == States.EndComment)
                     {
                         symbol = sr.Read();
+                        _column++;
+
                     }
                 }
             }
