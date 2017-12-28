@@ -16,8 +16,8 @@ namespace Translator
         static void Main()
         {
             var lexer = new Lexer(InitTable);
-            (var InformationTable, var Lexems, var Errors) = lexer.ParseFile("../../ExternalFiles/InputScript.txt");
-            PrintTableToConsole(InformationTable, Lexems, Errors);
+            (var informationTable, var lexems, var errors) = lexer.ParseFile("../../ExternalFiles/InputScript.txt");
+            PrintTableToConsole(informationTable, lexems, errors);
         }
 
         private static void PrintTableToConsole(Table informationTable, List<Lexem> lexems, List<Lexem> errors)

@@ -5,6 +5,7 @@
         Letter,
         Digit,
         Delimeter,
+        MultiDelimStart,
         Whitespace,
         OpenParenthesis,
         Asterisk,

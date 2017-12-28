@@ -4,9 +4,11 @@
     {
         Initial,
         Identifier,
+        InStack,
+        OfStack,
         Number,
         Out,
-        Input,
+        Read,
         Delimeter,
         Whitespace,
         BeginComment,

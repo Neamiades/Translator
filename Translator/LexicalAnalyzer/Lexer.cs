@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Translator.LexicalAnalyzer.FSM;
 
 namespace Translator.LexicalAnalyzer
@@ -13,7 +14,7 @@ namespace Translator.LexicalAnalyzer
 
         private List<Lexem> _errorLexems;
 
-        private States CurrentState;
+        private States _currentState;
 
         private int _line;
 
@@ -37,10 +38,10 @@ namespace Translator.LexicalAnalyzer
             //    case States.Number:
             //        CurrentState = States.Out;
             //        break;
-            //    case States.Input:
+            //    case States.Read:
             //        break;
             //    case States.Whitespace:
-            //        CurrentState = States.Input;
+            //        CurrentState = States.Read;
             //        break;
             //    case States.BeginComment:
             //        if (_table.Delimeters.TryGetValue('(', out int code))
@@ -70,11 +71,90 @@ namespace Translator.LexicalAnalyzer
             //}
         }
 
-        private void NextState(char symbol)
+        private Events RecognizeEvent(int symbol)
         {
+            return symbol == -1                                                ? Events.Eof
+                 : Char.IsLetter((char)symbol)                                 ? Events.Letter
+                 : Char.IsDigit((char)symbol)                                  ? Events.Digit
+                 : Char.IsWhiteSpace((char)symbol)                             ? Events.Whitespace
+                 : (char)symbol == '('                                         ? Events.OpenParenthesis
+                 : (char)symbol == '*'                                         ? Events.Asterisk
+                 : (char)symbol == ')'                                         ? Events.CloseParenthesis
+                 : _table.MultiDelimeters.Any(md => md.Key[0] == (char)symbol) ? Events.MultiDelimStart
+                 : _table.Delimeters.ContainsKey((char)symbol)                 ? Events.Delimeter
+                 : Events.Other;
+
+        }
+
+        private void NextState(char symbol, Events eventType)
+        {
+            switch (_currentState)
+            {
+                case States.Initial:
+                    switch (eventType)
+                    {
+                        case Events.Letter:
+                            _currentState = States.Identifier;
+                            _word += symbol;
+                            break;
+                        case Events.Digit:
+                            _currentState = States.Number;
+                            _word += symbol;
+                            break;
+                        case Events.Delimeter:
+                            _currentState = States.Out;
+                            break;
+                        case Events.Whitespace:
+                            _currentState = States.Whitespace;
+                            break;
+
+                        case Events.MultiDelimStart:
+                        case Events.OpenParenthesis:
+                            _currentState = States.InStack;
+                            break;
+
+                        case Events.Asterisk:
+                        case Events.CloseParenthesis:
+                            _currentState = States.Out;
+                            break;
+
+                        case Events.Eof:
+                            _currentState = States.Exit;
+                            break;
+                        case Events.Other:
+                            _currentState = States.Error;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(eventType), eventType, null);
+                    }
+                    break;
+                case States.Identifier:
+                    break;
+                case States.Number:
+                    break;
+                case States.Out:
+                    break;
+                case States.Read:
+                    break;
+                case States.Delimeter:
+                    break;
+                case States.Whitespace:
+                    break;
+                case States.BeginComment:
+                    break;
+                case States.Comment:
+                    break;
+                case States.EndComment:
+                    break;
+                case States.Exit:
+                    break;
+                case States.Error:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
             //if (Char.IsLetter(symbol))
             //{
-            //    LetterEvent();
             //    var ident = symbol.ToString();
             //    var identCol = column;
 
@@ -102,6 +182,7 @@ namespace Translator.LexicalAnalyzer
             //}
             //else if (Char.IsDigit(symbol))
             //{
+            //    LetterEvent();
             //    var constant = symbol.ToString();
             //    var constantCol = column;
 
@@ -170,24 +251,32 @@ namespace Translator.LexicalAnalyzer
             //return Events.Other;
         }
 
-        public (Table InformationTable, List<Lexem> Lexems, List<Lexem> Errors) ParseFile(string fileName)
+        public (Table informationTable, List<Lexem> lexems, List<Lexem> errors) ParseFile(string fileName)
         {
             _line = 0;
             _column = 0;
+            _currentState = States.Initial;
+
             _resultLexems = new List<Lexem>();
             _errorLexems = new List<Lexem>();
 
             using (var sr = new StreamReader(fileName))
             {
-                var symbol = (char)sr.Read();
-                
-                //while (!sr.EndOfStream)
-                while (CurrentState != States.Exit)
-                {
-                    NextState(symbol);
+                var symbol = sr.Read();
 
-                    if (CurrentState == States.Input)
-                        symbol = (char)sr.Read();
+                while (_currentState != States.Exit)
+                {
+                    NextState((char)symbol, RecognizeEvent(symbol));
+
+                    if (_currentState == States.Read
+                        || _currentState == States.Identifier
+                        || _currentState == States.Number
+                        || _currentState == States.Whitespace
+                        || _currentState == States.Comment
+                        || _currentState == States.EndComment)
+                    {
+                        symbol = sr.Read();
+                    }
                 }
             }
 
